@@ -12,7 +12,8 @@
 			sdram_controller_0_wire_dq    : inout std_logic_vector(15 downto 0) := (others => 'X'); -- dq
 			sdram_controller_0_wire_dqm   : out   std_logic_vector(1 downto 0);                     -- dqm
 			sdram_controller_0_wire_ras_n : out   std_logic;                                        -- ras_n
-			sdram_controller_0_wire_we_n  : out   std_logic                                         -- we_n
+			sdram_controller_0_wire_we_n  : out   std_logic;                                        -- we_n
+			pll_0_sdram_clk               : out   std_logic                                         -- clk
 		);
 	end component soc_system;
 
@@ -30,6 +31,7 @@
 			sdram_controller_0_wire_dq    => CONNECTED_TO_sdram_controller_0_wire_dq,    --                        .dq
 			sdram_controller_0_wire_dqm   => CONNECTED_TO_sdram_controller_0_wire_dqm,   --                        .dqm
 			sdram_controller_0_wire_ras_n => CONNECTED_TO_sdram_controller_0_wire_ras_n, --                        .ras_n
-			sdram_controller_0_wire_we_n  => CONNECTED_TO_sdram_controller_0_wire_we_n   --                        .we_n
+			sdram_controller_0_wire_we_n  => CONNECTED_TO_sdram_controller_0_wire_we_n,  --                        .we_n
+			pll_0_sdram_clk               => CONNECTED_TO_pll_0_sdram_clk                --             pll_0_sdram.clk
 		);
 

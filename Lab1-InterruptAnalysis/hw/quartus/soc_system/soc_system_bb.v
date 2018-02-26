@@ -12,7 +12,8 @@ module soc_system (
 	sdram_controller_0_wire_dq,
 	sdram_controller_0_wire_dqm,
 	sdram_controller_0_wire_ras_n,
-	sdram_controller_0_wire_we_n);	
+	sdram_controller_0_wire_we_n,
+	pll_0_sdram_clk);	
 
 	input		clk_clk;
 	input	[3:0]	parallel_port_0_button_export;
@@ -27,4 +28,5 @@ module soc_system (
 	output	[1:0]	sdram_controller_0_wire_dqm;
 	output		sdram_controller_0_wire_ras_n;
 	output		sdram_controller_0_wire_we_n;
+	output		pll_0_sdram_clk;
 endmodule
