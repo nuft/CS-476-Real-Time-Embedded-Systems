@@ -8,7 +8,6 @@
    <export preferredWidth="250" />
   </columns>
  </systemtable>
- <library
-   expandedCategories="Library/Memory Interfaces and Controllers/SDRAM,Library/Memory Interfaces and Controllers,Library/Memory Interfaces and Controllers/Memory Interfaces with UniPHY,Library/University Program/Clock,Library/University Program,Project,Library,Library/Memory Interfaces and Controllers/Memory Interfaces with ALTMEMPHY" />
+ <library expandedCategories="Project,Library" />
  <window width="1682" height="956" x="-1" y="0" />
 </preferences>

@@ -1,6 +1,8 @@
 
 module soc_system (
 	clk_clk,
+	parallel_port_0_button_export,
+	parallel_port_1_led_export,
 	reset_reset_n,
 	sdram_controller_0_wire_addr,
 	sdram_controller_0_wire_ba,
@@ -10,10 +12,11 @@ module soc_system (
 	sdram_controller_0_wire_dq,
 	sdram_controller_0_wire_dqm,
 	sdram_controller_0_wire_ras_n,
-	sdram_controller_0_wire_we_n,
-	parallel_port_0_external_interface_export);	
+	sdram_controller_0_wire_we_n);	
 
 	input		clk_clk;
+	input	[3:0]	parallel_port_0_button_export;
+	output	[9:0]	parallel_port_1_led_export;
 	input		reset_reset_n;
 	output	[12:0]	sdram_controller_0_wire_addr;
 	output	[1:0]	sdram_controller_0_wire_ba;
@@ -24,5 +27,4 @@ module soc_system (
 	output	[1:0]	sdram_controller_0_wire_dqm;
 	output		sdram_controller_0_wire_ras_n;
 	output		sdram_controller_0_wire_we_n;
-	input	[3:0]	parallel_port_0_external_interface_export;
 endmodule
