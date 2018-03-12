@@ -1,5 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 entity counter is
 port(
@@ -21,12 +22,15 @@ port(
 );
 end counter;
 
-architecture comp of counter is
+architecture rtl of counter is
     -- signals for register access
     signal reg_count            : unsigned(31 downto 0);
     signal reg_reload_value     : unsigned(31 downto 0);
     signal reg_control          : std_logic_vector(1 downto 0);
     signal reg_status           : std_logic_vector(1 downto 0);
+    -- internal states
+    signal counter_running      : boolean := false;
+
     -- register address layout
     constant ADDR_COUNT         : std_logic_vector(2 downto 0) := "000";
     constant ADDR_RELOAD_VALUE  : std_logic_vector(2 downto 0) := "001";
@@ -41,8 +45,6 @@ architecture comp of counter is
     -- status register bit positions
     constant IRQ_FLAG           : integer := 0;
     constant RUNNING_FLAG       : integer := 1;
-    -- internal states
-    signal counter_running      : boolean := false;
 begin
     -- always update current state
     reg_status(RUNNING_FLAG) <= '1' when counter_running else '0';
@@ -52,8 +54,8 @@ begin
     begin
         if nReset = '0' then
             counter_running <= false;
-            reg_count <= reg_count'high;
-            reg_reload_value <= reg_reload_value'high;
+            reg_count <= (others => '1');
+            reg_reload_value <= (others => '1');
             reg_control <= (others => '0');
             reg_status(IRQ_FLAG) <= '0';
         elsif rising_edge(Clk) then
@@ -73,9 +75,9 @@ begin
             if ChipSelect = '1' and Write = '1' then
                 case Address(2 downto 0) is
                     when ADDR_COUNT => null;
-                    when ADDR_RELOAD_VALUE => reg_reload_value <= WriteData;
+                    when ADDR_RELOAD_VALUE => reg_reload_value <= unsigned(WriteData);
                     when ADDR_CONTROL => reg_control <= WriteData(1 downto 0);
-                    when ADDR_STATUS => reg_status(IRQ_FLAG) <= '0' when WriteData(IRQ_FLAG) = '1';
+                    when ADDR_STATUS => reg_status(IRQ_FLAG) <= reg_status(IRQ_FLAG) and not WriteData(IRQ_FLAG);
                     when ADDR_CMD_START => counter_running <= true;
                     when ADDR_CMD_STOP => counter_running <= false;
                     when ADDR_CMD_RESET => reg_count <= reg_reload_value; -- writing to reset preserves counter state
@@ -94,8 +96,8 @@ begin
             -- read registers
             if ChipSelect = '1' and Read = '1' then
                 case Address(2 downto 0) is
-                    when ADDR_COUNT => ReadData <= reg_count;
-                    when ADDR_RELOAD_VALUE => ReadData <= reg_reload_value;
+                    when ADDR_COUNT => ReadData <= std_logic_vector(reg_count);
+                    when ADDR_RELOAD_VALUE => ReadData <= std_logic_vector(reg_reload_value);
                     when ADDR_CONTROL => ReadData(1 downto 0) <= reg_control;
                     when ADDR_STATUS => ReadData(1 downto 0) <= reg_status;
                     when others => null;
@@ -117,4 +119,4 @@ begin
         end if;
     end process;
 
-end comp;
+end rtl;
