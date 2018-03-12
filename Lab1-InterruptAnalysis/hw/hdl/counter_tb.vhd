@@ -2,7 +2,11 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+library vunit_lib;
+context vunit_lib.vunit_context;
+
 entity counter_tb is
+    generic (runner_cfg : string);
 end counter_tb;
 
 architecture tb of counter_tb is
@@ -51,7 +55,7 @@ begin
     tb_clk <= not tb_clk after CLK_PERIOD/2 when sim_ended /= '1' else '0';
     Clk <= tb_clk;
 
-stimulus: process
+test_runner: process
     -- Simulate Avalon write
     procedure AvalonWrite(
         constant addr: std_logic_vector(2 downto 0);
@@ -106,34 +110,28 @@ stimulus: process
     -- Reset UUT
     procedure TEST_END is
     begin
-        report "PASSED" & LF;
         -- signal simulation end and wait
         sim_ended <= '1';
-        wait;
     end procedure TEST_END;
 
-    function COMPARE (A: std_logic_vector;
-                      B: unsigned)
-        return boolean is
-    begin
-        --assert false
-        --report "COMPARE" severity failure;
-        return false;
-    end COMPARE;
+begin
+    test_runner_setup(runner, runner_cfg);
 
-begin -- TEST PROCESS
-    report "START TESTBENCH" & LF;
-    TEST_RESET;
-
-    AvalonWrite(ADDR_RELOAD_VALUE, to_unsigned(3, 32));
-    AvalonRead(ADDR_RELOAD_VALUE);
-    assert unsigned(ReadData) = to_unsigned(3, 32)
-    report "AvalonRead /= AvalonWrite" severity failure;
-
-    --assert COMPARE(ReadData, to_unsigned(32, 32))
-    --report "FOO" severity failure;
+    while test_suite loop
+        TEST_RESET;
+        if run("Test to_string for integer") then
+            check_equal(to_string(17), "17");
+        elsif run("Test to_string for boolean") then
+            check_equal(to_string(true), "true");
+        elsif run("Test Avalon read/write") then
+            AvalonWrite(ADDR_RELOAD_VALUE, to_unsigned(3, 32));
+            AvalonRead(ADDR_RELOAD_VALUE);
+            check_equal(unsigned(ReadData), to_unsigned(3, 32));
+        end if;
+    end loop;
 
     TEST_END;
+    test_runner_cleanup(runner);
 end process;
 
 end tb;
