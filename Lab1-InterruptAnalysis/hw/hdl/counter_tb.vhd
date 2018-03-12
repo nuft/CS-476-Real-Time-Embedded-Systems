@@ -54,15 +54,15 @@ begin
 stimulus: process
     -- Simulate Avalon write
     procedure AvalonWrite(
-        constant addr: std_logic_vector(2 downto 0);
-        constant data: unsigned(31 downto 0)) is
+        constant addr: std_logic_vector;
+        constant data: unsigned) is
     begin
         wait until rising_edge(tb_clk);
         Address <= addr;
         ChipSelect <= '1';
         Read <= '0';
         Write <= '1';
-        WriteData <= std_logic_vector(data);
+        WriteData <= std_logic_vector(to_unsigned(0, 32-data'length) & data);
         wait for CLK_PERIOD;
         WriteData <= (others => '0');
         Address <= (others => '0');
@@ -70,9 +70,16 @@ stimulus: process
         Write <= '0';
     end procedure AvalonWrite;
 
+    procedure AvalonWrite(
+        constant addr: std_logic_vector;
+        constant data: integer) is
+    begin
+        AvalonWrite(addr, to_unsigned(data, WriteData'length));
+    end procedure AvalonWrite;
+
     -- Simulate Avalon read
     procedure AvalonRead(
-        constant addr: std_logic_vector(2 downto 0)) is
+        constant addr: std_logic_vector) is
     begin
         wait until rising_edge(tb_clk);
         Address <= addr;
@@ -106,32 +113,46 @@ stimulus: process
     -- Reset UUT
     procedure TEST_END is
     begin
-        report "PASSED" & LF;
+        report "[PASSED]" & LF;
         -- signal simulation end and wait
         sim_ended <= '1';
         wait;
     end procedure TEST_END;
 
-    function COMPARE (A: std_logic_vector;
-                      B: unsigned)
-        return boolean is
+    procedure CHECK_EQUAL(
+        constant A: std_logic_vector;
+        constant B: unsigned;
+        constant msg: string) is
     begin
-        --assert false
-        --report "COMPARE" severity failure;
-        return false;
-    end COMPARE;
+        if A /= std_logic_vector(B) then
+            assert false report "[FAILED]: " & msg severity failure;
+        end if;
+    end CHECK_EQUAL;
+
+    procedure CHECK_EQUAL(
+        constant A: std_logic_vector;
+        constant B: integer;
+        constant msg: string) is
+    begin
+        CHECK_EQUAL(A, to_unsigned(B, A'length), msg);
+    end CHECK_EQUAL;
 
 begin -- TEST PROCESS
-    report "START TESTBENCH" & LF;
+    report "[START TESTBENCH]" & LF;
     TEST_RESET;
 
-    AvalonWrite(ADDR_RELOAD_VALUE, to_unsigned(3, 32));
+    AvalonWrite(ADDR_RELOAD_VALUE, "1010");
+    AvalonWrite(ADDR_RELOAD_VALUE, 31);
     AvalonRead(ADDR_RELOAD_VALUE);
-    assert unsigned(ReadData) = to_unsigned(3, 32)
-    report "AvalonRead /= AvalonWrite" severity failure;
+    CHECK_EQUAL(ReadData, 31, "Avalon read /= write");
 
-    --assert COMPARE(ReadData, to_unsigned(32, 32))
-    --report "FOO" severity failure;
+    --CHECK_EQUAL("1", "0", "FOO");
+    CHECK_EQUAL("101010", 42, "Bar");
+
+    AvalonWrite(ADDR_CMD_START, to_unsigned(0, 32));
+    wait for 4*CLK_PERIOD;
+    AvalonWrite(ADDR_CMD_STOP, to_unsigned(0, 32));
+    wait for 4*CLK_PERIOD;
 
     TEST_END;
 end process;
